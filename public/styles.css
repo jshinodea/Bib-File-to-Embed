@@ -1,0 +1,361 @@
+:root {
+    --primary-blue: #002855;
+    --gold: #FDB515;
+    --white: #FFFFFF;
+    --light-gray: #f5f5f5;
+    --border-gray: #e0e0e0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: var(--white);
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    gap: 20px;
+}
+
+.search-input {
+    padding: 12px 16px;
+    border: 1px solid var(--border-gray);
+    border-radius: 6px;
+    width: 300px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+}
+
+.buttons-group {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.btn {
+    background-color: var(--white);
+    color: var(--primary-blue);
+    border: 1px solid var(--primary-blue);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 100px;
+    justify-content: space-between;
+}
+
+.btn:hover {
+    background-color: var(--light-gray);
+}
+
+.btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--primary-blue);
+}
+
+.button-group-label {
+    color: #666;
+    font-size: 14px;
+    margin-right: 12px;
+}
+
+.dropdown {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--white);
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1;
+    border-radius: 6px;
+    border: 1px solid var(--border-gray);
+    margin-top: 6px;
+    right: 0;
+    top: 100%;
+}
+
+.dropdown-content a {
+    color: #444;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+}
+
+.dropdown-content a:hover {
+    background-color: var(--light-gray);
+    color: var(--primary-blue);
+}
+
+.publication-card {
+    background-color: var(--white);
+    padding: 24px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-gray);
+    position: relative;
+}
+
+.publication-title {
+    color: var(--primary-blue);
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    padding-right: 140px;
+    line-height: 1.4;
+}
+
+.authors-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.publication-authors {
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    padding-right: 140px;
+}
+
+.publication-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #666;
+    font-size: 14px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-gray);
+    gap: 16px;
+}
+
+.meta-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+    min-width: 0;
+}
+
+.meta-left span {
+    white-space: nowrap;
+}
+
+.citation-count {
+    color: #666;
+    font-size: 13px;
+    position: relative;
+    padding-left: 24px;
+    border-left: 1px solid var(--border-gray);
+}
+
+.meta-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.publication-link {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    color: var(--primary-blue);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    background-color: var(--light-gray);
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.publication-link:hover {
+    background-color: var(--gold);
+}
+
+.year-group {
+    margin-bottom: 32px;
+    border: 3px solid var(--primary-blue);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.year-header {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    padding: 12px 24px;
+    margin-bottom: 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 0;
+}
+
+.year-header:hover {
+    background-color: #003872;
+}
+
+.publications-container {
+    padding: 16px;
+    background-color: var(--white);
+}
+
+.publication-card {
+    background-color: var(--white);
+    padding: 24px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-gray);
+    position: relative;
+}
+
+.publications-container .publication-card:last-child {
+    margin-bottom: 0;
+}
+
+.collapsed {
+    border-radius: 8px;
+}
+
+.collapsed .publications-container {
+    display: none;
+}
+
+.btn svg.chevron-down {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.5px;
+}
+
+.bibtex-section {
+    margin-top: 16px;
+    border-top: 1px solid var(--border-gray);
+    padding-top: 16px;
+    display: none;
+}
+
+.bibtex-content {
+    background-color: var(--light-gray);
+    padding: 16px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    color: #444;
+    overflow-x: auto;
+}
+
+.bibtex-toggle {
+    background: none;
+    border: none;
+    color: var(--primary-blue);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    white-space: nowrap;
+    width: 108px;
+    justify-content: center;
+}
+
+.bibtex-toggle:hover {
+    color: #003872;
+}
+
+.bibtex-toggle svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s;
+}
+
+.bibtex-toggle.active svg {
+    transform: rotate(180deg);
+}
+
+.publication-actions {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.direction-btn {
+    background: none;
+    border: 1px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.direction-btn svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+}
+
+.direction-btn:hover {
+    background-color: var(--light-gray);
+}
+
+/* Add styles for direction indicators */
+.direction-btn[data-direction="asc"] svg {
+    transform: rotate(180deg);
+}
+
+.direction-btn[data-direction="desc"] svg {
+    transform: rotate(0deg);
+}
+
+.profile-links,
+.profile-btn {
+    display: none;
+}

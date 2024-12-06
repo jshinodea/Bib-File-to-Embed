@@ -52,7 +52,7 @@ const upload = multer({
 // Initialize publications from mounted BibTeX file
 async function initializePublications() {
   try {
-    const bibFilePath = process.env.BIBTEX_FILE || '/data/input.bib';
+    const bibFilePath = process.env.BIBTEX_FILE || path.join(__dirname, 'citations.bib');
     logger.info(`Attempting to load BibTeX file from: ${bibFilePath}`);
     
     const content = validateBibFile(bibFilePath);

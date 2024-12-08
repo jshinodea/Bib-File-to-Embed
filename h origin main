@@ -1,0 +1,5 @@
+[33m3b3ee66[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Merge branch 'automated-bib-gen'
+[33m52dff7d[m[33m ([m[1;32mautomated-bib-gen[m[33m)[m fix: Update Python dependencies for Render deployment
+[33m0cc7b20[m Merge pull request #1 from jshinodea/automated-bib-gen
+[33m062f5a6[m feat: Add SERPAPI integration for Google Scholar scraping
+[33me75b9a5[m[33m ([m[1;31morigin/automated-bib-gen[m[33m)[m feat: Add automated BibTeX generation from Google Scholar

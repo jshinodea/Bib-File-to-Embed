@@ -19,15 +19,14 @@ RUN git clone https://github.com/jshinodea/scholar_to_bibtex.git /app/scholar_to
 
 WORKDIR /app/scholar_to_bibtex
 
-# Install Python dependencies explicitly
-RUN pip3 install --no-cache-dir \
-    scholarly==1.7.11 \
-    google-scholar-scraper==1.0.0 \
-    serpapi-search-python==2.0.0 \
-    requests==2.31.0 \
-    beautifulsoup4==4.12.2 \
-    selenium==4.15.2 \
-    webdriver-manager==4.0.1
+# Install Python dependencies one by one with verbose output
+RUN pip3 install --verbose scholarly==1.7.11 && \
+    pip3 install --verbose google-scholar==1.0.1 && \
+    pip3 install --verbose python-serpapi && \
+    pip3 install --verbose requests==2.31.0 && \
+    pip3 install --verbose beautifulsoup4==4.12.2 && \
+    pip3 install --verbose selenium==4.15.2 && \
+    pip3 install --verbose webdriver-manager==4.0.1
 
 # Create configuration file for SERPAPI
 RUN echo "{\"serpapi_key\": \"$SERPAPI_KEY\"}" > config.json

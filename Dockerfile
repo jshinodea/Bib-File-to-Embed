@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     git \
     cron \
+    build-essential \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -13,7 +15,13 @@ WORKDIR /app
 # Clone scholar_to_bibtex repository
 RUN git clone https://github.com/jshinodea/scholar_to_bibtex.git /app/scholar_to_bibtex
 WORKDIR /app/scholar_to_bibtex
-RUN pip3 install -r requirements.txt
+
+# Install Python dependencies explicitly
+RUN pip3 install --no-cache-dir \
+    scholarly \
+    serpapi \
+    requests \
+    beautifulsoup4
 
 # Create configuration file for SERPAPI
 RUN echo '{"serpapi_key": "${SERPAPI_KEY}"}' > config.json

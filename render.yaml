@@ -8,6 +8,8 @@ services:
         value: production
       - key: SCHOLAR_URL
         sync: false # This will be set in Render dashboard
+      - key: SERPAPI_KEY
+        sync: false # This will be set in Render dashboard
     disk:
       name: citations-data
       mountPath: /app/data

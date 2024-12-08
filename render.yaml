@@ -1,9 +1,21 @@
 services:
   - type: web
     name: publications-viewer
-    env: node
-    buildCommand: npm install
-    startCommand: node server.js
+    env: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: NODE_ENV
-        value: production 
+        value: production
+      - key: SCHOLAR_URL
+        sync: false # This will be set in Render dashboard
+    disk:
+      name: citations-data
+      mountPath: /app/data
+      sizeGB: 1
+    healthCheckPath: /
+    numInstances: 1
+    
+    # Configure a cron job to run daily at midnight UTC
+    cron:
+      - schedule: "0 0 * * *"
+        command: /app/update_citations.sh 

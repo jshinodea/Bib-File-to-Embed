@@ -119,6 +119,90 @@ app.post('/upload', upload.single('bibfile'), async (req, res) => {
   }
 });
 
+// Add SSR endpoint
+app.get('/embed-ssr', (req, res) => {
+  if (!cachedPublications) {
+    return res.status(503).send(`
+      <div class="publications-viewer-container">
+        <p>Loading publications...</p>
+      </div>
+    `);
+  }
+
+  // Generate initial HTML with publications data
+  const initialHtml = `
+    <div class="publications-viewer-container" id="publications-viewer">
+      <div class="controls">
+        <input type="text" class="search-input" placeholder="Search publications..." aria-label="Search publications">
+        <div class="buttons-group">
+          <div class="dropdown">
+            <button class="btn sort-btn">Sort by</button>
+            <div class="dropdown-content sort-options">
+              <a href="#" data-sort="time">Date</a>
+              <a href="#" data-sort="title">Title</a>
+              <a href="#" data-sort="author">Author</a>
+            </div>
+          </div>
+          <button class="direction-btn" aria-label="Toggle sort direction">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="publications-list">
+        ${generatePublicationsHtml(cachedPublications)}
+      </div>
+    </div>
+    <script>
+      window.__INITIAL_DATA__ = ${JSON.stringify(cachedPublications)};
+    </script>
+  `;
+
+  res.send(initialHtml);
+});
+
+// Helper function to generate publications HTML
+function generatePublicationsHtml(publications) {
+  const groupedByYear = {};
+  publications.forEach(pub => {
+    const year = pub.year || 'Unknown';
+    if (!groupedByYear[year]) {
+      groupedByYear[year] = [];
+    }
+    groupedByYear[year].push(pub);
+  });
+
+  return Object.entries(groupedByYear)
+    .sort(([a], [b]) => b - a)
+    .map(([year, pubs]) => `
+      <div class="year-group">
+        <div class="year-header">
+          <span>${year}</span>
+          <span>${pubs.length} publication${pubs.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="publications-list">
+          ${pubs.map(pub => `
+            <div class="publication-card">
+              <h3>${escapeHtml(pub.title)}</h3>
+              <p>${escapeHtml(pub.author)}</p>
+              ${pub.doi ? `<a href="https://doi.org/${pub.doi}" class="publication-link" target="_blank" rel="noopener">View Publication</a>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+}
+
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 const PORT = process.env.PORT || 3000;
 
 // Initialize publications before starting the server

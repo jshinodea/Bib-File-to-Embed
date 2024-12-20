@@ -123,14 +123,90 @@ app.post('/upload', upload.single('bibfile'), async (req, res) => {
 app.get('/embed-ssr', (req, res) => {
   if (!cachedPublications) {
     return res.status(503).send(`
+      <style>
+        .publications-viewer-container {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          background-color: white;
+          padding: 20px;
+          margin: 0 auto;
+          max-width: 1200px;
+          width: 100%;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+        }
+      </style>
       <div class="publications-viewer-container">
-        <p>Loading publications...</p>
+        <p style="text-align: center; color: #666;">Loading publications...</p>
       </div>
     `);
   }
 
   // Generate initial HTML with publications data
   const initialHtml = `
+    <style>
+      .publications-viewer-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: white;
+        padding: 8px 20px 20px 20px;
+        margin: 0 auto;
+        max-width: 1200px;
+        width: 100%;
+      }
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        background-color: white;
+        padding: 16px 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      }
+      .search-input {
+        padding: 10px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        width: 300px;
+        font-size: 14px;
+      }
+      .year-group {
+        margin-bottom: 32px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .year-header {
+        background-color: #002855;
+        color: white;
+        padding: 12px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .publication-card {
+        background-color: white;
+        padding: 24px;
+        margin: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        position: relative;
+      }
+      .publication-link {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        color: #002855;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        background-color: #f8f9fa;
+      }
+    </style>
     <div class="publications-viewer-container" id="publications-viewer">
       <div class="controls">
         <input type="text" class="search-input" placeholder="Search publications..." aria-label="Search publications">

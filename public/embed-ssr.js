@@ -1,8 +1,18 @@
 (function() {
-    async function loadPublicationsSSR() {
+    async function loadPublicationsSSR(scriptElement) {
         try {
             // Get base URL from script src
-            const baseUrl = document.currentScript.src.split('/embed-ssr.js')[0];
+            const baseUrl = scriptElement.src.split('/embed-ssr.js')[0];
+            
+            // Show loading state immediately
+            const loadingContainer = document.createElement('div');
+            loadingContainer.className = 'publications-viewer-container';
+            loadingContainer.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    Loading publications...
+                </div>
+            `;
+            scriptElement.parentNode.insertBefore(loadingContainer, scriptElement);
             
             // Fetch the pre-rendered HTML
             const response = await fetch(`${baseUrl}/embed-ssr`);
@@ -14,8 +24,8 @@
             const container = document.createElement('div');
             container.innerHTML = html;
             
-            // Insert the container before the script tag
-            document.currentScript.parentNode.insertBefore(container.firstElementChild, document.currentScript);
+            // Replace loading container with actual content
+            loadingContainer.replaceWith(container.firstElementChild);
             
             // Load the main script for interactivity
             const script = document.createElement('script');
@@ -31,14 +41,17 @@
                     Error loading publications: ${error.message}
                 </div>
             `;
-            document.currentScript.parentNode.insertBefore(errorContainer, document.currentScript);
+            scriptElement.parentNode.insertBefore(errorContainer, scriptElement);
         }
     }
     
+    // Store reference to current script
+    const currentScript = document.currentScript;
+    
     // Start loading when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadPublicationsSSR);
+        document.addEventListener('DOMContentLoaded', () => loadPublicationsSSR(currentScript));
     } else {
-        loadPublicationsSSR();
+        loadPublicationsSSR(currentScript);
     }
 })(); 

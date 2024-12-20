@@ -9,8 +9,13 @@ const logger = require('./src/utils/logger');
 
 const app = express();
 
-// Enable CORS for script embedding
-app.use(cors());
+// Enable CORS for script embedding with specific options
+app.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Accept'], // Allowed headers
+  maxAge: 86400 // Cache preflight requests for 24 hours
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -119,123 +124,150 @@ app.post('/upload', upload.single('bibfile'), async (req, res) => {
   }
 });
 
-// Add SSR endpoint
+// Add SSR endpoint with error handling
 app.get('/embed-ssr', (req, res) => {
-  if (!cachedPublications) {
-    return res.status(503).send(`
+  try {
+    logger.info('SSR request received', { 
+      userAgent: req.headers['user-agent'],
+      referer: req.headers.referer 
+    });
+
+    if (!cachedPublications) {
+      logger.warn('Publications not initialized for SSR request');
+      return res.status(503).send(`
+        <style>
+          .publications-viewer-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: white;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 1200px;
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+          }
+        </style>
+        <div class="publications-viewer-container">
+          <p style="text-align: center; color: #666;">Loading publications...</p>
+        </div>
+      `);
+    }
+
+    // Generate initial HTML with publications data
+    const initialHtml = `
       <style>
         .publications-viewer-container {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
           background-color: white;
-          padding: 20px;
+          padding: 8px 20px 20px 20px;
           margin: 0 auto;
           max-width: 1200px;
           width: 100%;
+        }
+        .controls {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+          background-color: white;
+          padding: 16px 20px;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .search-input {
+          padding: 10px 16px;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          width: 300px;
+          font-size: 14px;
+        }
+        .year-group {
+          margin-bottom: 32px;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
+          overflow: hidden;
+        }
+        .year-header {
+          background-color: #002855;
+          color: white;
+          padding: 12px 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 15px;
+          font-weight: 500;
+        }
+        .publication-card {
+          background-color: white;
+          padding: 24px;
+          margin: 16px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          position: relative;
+        }
+        .publication-link {
+          position: absolute;
+          top: 24px;
+          right: 24px;
+          color: #002855;
+          text-decoration: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          font-size: 13px;
+          font-weight: 500;
+          background-color: #f8f9fa;
         }
       </style>
+      <div class="publications-viewer-container" id="publications-viewer">
+        <div class="controls">
+          <input type="text" class="search-input" placeholder="Search publications..." aria-label="Search publications">
+          <div class="buttons-group">
+            <div class="dropdown">
+              <button class="btn sort-btn">Sort by</button>
+              <div class="dropdown-content sort-options">
+                <a href="#" data-sort="time">Date</a>
+                <a href="#" data-sort="title">Title</a>
+                <a href="#" data-sort="author">Author</a>
+              </div>
+            </div>
+            <button class="direction-btn" aria-label="Toggle sort direction">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="publications-list">
+          ${generatePublicationsHtml(cachedPublications)}
+        </div>
+      </div>
+      <script>
+        window.__INITIAL_DATA__ = ${JSON.stringify(cachedPublications)};
+      </script>
+    `;
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(initialHtml);
+
+    logger.info('SSR response sent successfully', { 
+      publicationsCount: cachedPublications.length 
+    });
+  } catch (error) {
+    logger.error('Error in SSR endpoint', { 
+      error: error.message,
+      stack: error.stack 
+    });
+    res.status(500).send(`
       <div class="publications-viewer-container">
-        <p style="text-align: center; color: #666;">Loading publications...</p>
+        <p style="color: red; text-align: center;">
+          Error loading publications: ${error.message}
+        </p>
       </div>
     `);
   }
-
-  // Generate initial HTML with publications data
-  const initialHtml = `
-    <style>
-      .publications-viewer-container {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background-color: white;
-        padding: 8px 20px 20px 20px;
-        margin: 0 auto;
-        max-width: 1200px;
-        width: 100%;
-      }
-      .controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        background-color: white;
-        padding: 16px 20px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      }
-      .search-input {
-        padding: 10px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        width: 300px;
-        font-size: 14px;
-      }
-      .year-group {
-        margin-bottom: 32px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        overflow: hidden;
-      }
-      .year-header {
-        background-color: #002855;
-        color: white;
-        padding: 12px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 15px;
-        font-weight: 500;
-      }
-      .publication-card {
-        background-color: white;
-        padding: 24px;
-        margin: 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        position: relative;
-      }
-      .publication-link {
-        position: absolute;
-        top: 24px;
-        right: 24px;
-        color: #002855;
-        text-decoration: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 13px;
-        font-weight: 500;
-        background-color: #f8f9fa;
-      }
-    </style>
-    <div class="publications-viewer-container" id="publications-viewer">
-      <div class="controls">
-        <input type="text" class="search-input" placeholder="Search publications..." aria-label="Search publications">
-        <div class="buttons-group">
-          <div class="dropdown">
-            <button class="btn sort-btn">Sort by</button>
-            <div class="dropdown-content sort-options">
-              <a href="#" data-sort="time">Date</a>
-              <a href="#" data-sort="title">Title</a>
-              <a href="#" data-sort="author">Author</a>
-            </div>
-          </div>
-          <button class="direction-btn" aria-label="Toggle sort direction">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="publications-list">
-        ${generatePublicationsHtml(cachedPublications)}
-      </div>
-    </div>
-    <script>
-      window.__INITIAL_DATA__ = ${JSON.stringify(cachedPublications)};
-    </script>
-  `;
-
-  res.send(initialHtml);
 });
 
 // Helper function to generate publications HTML

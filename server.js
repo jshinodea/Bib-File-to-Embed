@@ -6,6 +6,7 @@ const cors = require('cors');
 const { validateBibFile, FileValidationError } = require('./src/utils/fileValidator');
 const { parseBibTeXContent, BibParseError } = require('./src/utils/bibParser');
 const logger = require('./src/utils/logger');
+const fs = require('fs');
 
 const app = express();
 
@@ -60,15 +61,55 @@ async function initializePublications() {
     const bibFilePath = process.env.BIBTEX_FILE || path.join(__dirname, 'citations.bib');
     logger.info(`Attempting to load BibTeX file from: ${bibFilePath}`);
     
+    // Check if file exists
+    try {
+      await fs.promises.access(bibFilePath, fs.constants.R_OK);
+    } catch (error) {
+      logger.error('BibTeX file not accessible', {
+        path: bibFilePath,
+        error: error.message
+      });
+      throw new Error('BibTeX file not found or not readable');
+    }
+    
     const content = validateBibFile(bibFilePath);
-    cachedPublications = parseBibTeXContent(content);
+    if (!content) {
+      throw new Error('Empty BibTeX file');
+    }
+    
+    const parsedPublications = parseBibTeXContent(content);
+    
+    // Validate the parsed publications
+    if (!Array.isArray(parsedPublications)) {
+      throw new Error('Invalid publications data format');
+    }
+    
+    // Filter out null/undefined entries and validate required fields
+    cachedPublications = parsedPublications
+      .filter(pub => pub != null)
+      .map(pub => ({
+        title: pub.title || 'Untitled',
+        author: pub.author || 'Unknown Author',
+        year: pub.year || 'Unknown',
+        doi: pub.doi || null,
+        // Add any other fields you need
+      }));
+    
     logger.info(`Initialized ${cachedPublications.length} publications`);
+    
+    if (cachedPublications.length === 0) {
+      logger.warn('No valid publications found in BibTeX file');
+    }
   } catch (error) {
     logger.error('Failed to initialize publications', { 
       error: error.message,
+      stack: error.stack,
       code: error.code 
     });
-    throw error;
+    // Initialize with empty array instead of throwing
+    cachedPublications = [];
+    // Don't throw, let the server start
+    return;
   }
 }
 
@@ -272,38 +313,62 @@ app.get('/embed-ssr', (req, res) => {
 
 // Helper function to generate publications HTML
 function generatePublicationsHtml(publications) {
-  const groupedByYear = {};
-  publications.forEach(pub => {
-    const year = pub.year || 'Unknown';
-    if (!groupedByYear[year]) {
-      groupedByYear[year] = [];
+  try {
+    if (!Array.isArray(publications)) {
+      logger.error('Invalid publications data', { type: typeof publications });
+      return '<p style="color: red; text-align: center;">Error: Invalid publications data</p>';
     }
-    groupedByYear[year].push(pub);
-  });
 
-  return Object.entries(groupedByYear)
-    .sort(([a], [b]) => b - a)
-    .map(([year, pubs]) => `
-      <div class="year-group">
-        <div class="year-header">
-          <span>${year}</span>
-          <span>${pubs.length} publication${pubs.length === 1 ? '' : 's'}</span>
+    const groupedByYear = {};
+    publications.forEach(pub => {
+      if (!pub) return; // Skip null/undefined publications
+      
+      const year = (pub.year || 'Unknown').toString();
+      if (!groupedByYear[year]) {
+        groupedByYear[year] = [];
+      }
+      groupedByYear[year].push(pub);
+    });
+
+    if (Object.keys(groupedByYear).length === 0) {
+      return '<p style="text-align: center;">No publications found</p>';
+    }
+
+    return Object.entries(groupedByYear)
+      .sort(([a], [b]) => b - a)
+      .map(([year, pubs]) => `
+        <div class="year-group">
+          <div class="year-header">
+            <span>${escapeHtml(year)}</span>
+            <span>${pubs.length} publication${pubs.length === 1 ? '' : 's'}</span>
+          </div>
+          <div class="publications-list">
+            ${pubs.map(pub => `
+              <div class="publication-card">
+                <h3>${escapeHtml(pub.title || 'Untitled')}</h3>
+                <p>${escapeHtml(pub.author || 'Unknown Author')}</p>
+                ${pub.doi ? `<a href="https://doi.org/${escapeHtml(pub.doi)}" class="publication-link" target="_blank" rel="noopener">View Publication</a>` : ''}
+              </div>
+            `).join('')}
+          </div>
         </div>
-        <div class="publications-list">
-          ${pubs.map(pub => `
-            <div class="publication-card">
-              <h3>${escapeHtml(pub.title)}</h3>
-              <p>${escapeHtml(pub.author)}</p>
-              ${pub.doi ? `<a href="https://doi.org/${pub.doi}" class="publication-link" target="_blank" rel="noopener">View Publication</a>` : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+  } catch (error) {
+    logger.error('Error generating publications HTML', { 
+      error: error.message,
+      stack: error.stack 
+    });
+    return `
+      <p style="color: red; text-align: center;">
+        Error generating publications: ${escapeHtml(error.message)}
+      </p>
+    `;
+  }
 }
 
 function escapeHtml(unsafe) {
-  return unsafe
+  if (unsafe == null) return '';
+  return unsafe.toString()
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
